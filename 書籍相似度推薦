@@ -1,0 +1,73 @@
+from sklearn.feature_extraction.text import CountVectorizer
+import numpy as np
+from scipy.linalg import norm
+import csv
+import pandas as pd
+import pymysql
+from datetime import datetime
+from pyquery import PyQuery as pq
+
+book_df = pd.read_csv("ID.books.csv")
+ID=list(book_df["編號"])
+document=list(book_df["書名(B)"])
+
+titles=[]
+new=[]
+newdff =[]
+newlist=[]
+
+def tf_similarity(s1, s2):
+    def add_space(s):
+        return ' '.join(list(s))
+    
+    s1, s2 = add_space(s1), add_space(s2)
+    
+    cv = CountVectorizer(tokenizer=lambda s: s.split())
+    corpus = [s1, s2]
+    vectors = cv.fit_transform(corpus).toarray()
+    
+    return np.dot(vectors[0], vectors[1]) / (norm(vectors[0]) * norm(vectors[1]))
+m=7056
+
+
+
+for j in range(m,m+1):
+            #s2 = document[j]
+        for i in range(8371):
+            titles.append(tf_similarity(str(document[i]), document[j]))
+
+
+        df = pd.DataFrame()
+        df["ID"]=ID
+        df["document"] = document
+        df["titles"] = titles
+
+        dff = df.sort_values("titles", ascending=False).head(7)
+
+
+        newbook=dff.values.T.tolist()
+
+        dff.to_csv('bk.csv', sep=',')
+        book_df = pd.read_csv("bk.csv")
+        newbook=book_df.values.T.tolist()
+        ID1=(newbook[0][0])
+        #booktitle1=(newbook[1][0])
+        ID2=(newbook[0][1])
+        #booktitle2=(newbook[1][1])        
+        ID3=(newbook[0][2])
+        #booktitle3=(newbook[1][2])
+        ID4=(newbook[0][3])
+        #booktitle4=(newbook[1][3])
+        ID5=(newbook[0][4])
+        #booktitle5=(newbook[1][4])
+        ID6=(newbook[0][5])
+        #booktitle6=(newbook[1][5])
+        ID7=(newbook[0][6])
+
+        df = ID1,ID2,ID3,ID4,ID5,ID6,ID7
+
+        db =pymysql.connect(host = 'localhost' ,  user = 'root' ,  passwd = '123456' ,  db = 'books', charset='utf8' )
+        cursor = db.cursor()
+        sql ="insert into newbook(ID1,ID2,ID3,ID4,ID5,ID6,ID7) values(%s,%s,%s,%s,%s,%s,%s)"
+        cursor.execute(sql,df)
+        db.commit()
