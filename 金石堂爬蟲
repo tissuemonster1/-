@@ -1,0 +1,93 @@
+import os
+import time
+from selenium import webdriver
+from pyquery import PyQuery as pq
+import urllib.request 
+import requests
+import re
+from bs4 import BeautifulSoup as bs
+import csv
+domains = "https://www.kingstone.com.tw"
+chrome_driver_path = "/Users/irene/Desktop/chromedriver"
+driver = webdriver.Chrome(executable_path=chrome_driver_path)
+driver.implicitly_wait(30)
+
+book_type = ['KIB','KIF','KIE','KIG','KIH','KII','KIJ','KIK','KJA','KJB','KJC','KJD','KJE,'KJF','KJH','KIH']
+book_range = range(3)
+booktitle_list = []
+ISBN_list = []
+price_list = []
+discount_rate_list = []
+publish_date_list = []
+author_list = []
+publisher_list = []
+img_link_list = []
+test_list = []
+book_url_list = []
+book_url = []
+          
+for j in range(1,20):
+    link=("https://www.kingstone.com.tw/book/book_class.asp?class_id={}&dis=&sort=sale_desc&sr1=&sr2=&page=".format(book_type[j]))
+    for i in range(1,20):
+        list = link +"{}#ClassSec".format(i)
+        z.append(list)
+        driver.get(list)
+        html = urllib.request.urlopen(list).read()
+        for k in range(1,21):
+            book_css = "#mainContent li:nth-child({}) .anchor span".format(k)
+            book = driver.find_element_by_css_selector(book_css)
+            booktitle = book.text
+            booktitle_list.append(booktitle)
+            
+            author_css = "li:nth-child({}) .author a".format(k)
+            author = driver.find_element_by_css_selector(author_css)
+            author = author.text
+            author_list.append(author)
+            
+            publisher_css = "li:nth-child({}) .publisher a".format(k)
+            publisher = driver.find_element_by_css_selector(publisher_css)
+            publisher = publisher.text
+            publisher_list.append(publisher)
+        
+            publish_date = driver.find_element_by_css_selector(" li:nth-child({}) .publisher+ span".format(k))
+            publish_date = publish_date.text.strip('出版')
+            publish_date_list.append(publish_date)
+            
+            img_css = "#mainContent li:nth-child({}) img".format(k)
+            img = driver.find_element_by_css_selector(img_css)
+            img_link = img.get_attribute("src")
+            img_link_list.append(img_link)
+            
+            book.click()
+            #time.sleep(5)
+            book_url = driver.current_url
+            book_url_list.append(book_url)
+           
+        
+            price_css = ".dis_p"
+            price = driver.find_element_by_css_selector(price_css)
+            price = price.text
+            price_list.append(price)
+          
+            shop_css = ".home"
+            shop = driver.find_element_by_css_selector(shop_css)
+            shop = shop.text
+            shop_name.append(shop)
+            driver.back()
+
+import pandas as pd
+
+df = pd.DataFrame()
+#df["ISBN_list"] = ISBN_list
+df["booktitle_list"] = booktitle_list
+df["author_list"] = author_list
+df["publisher_list"] = publisher_list
+df["publish_date_list"] = publish_date_list
+df["price"] = price_list
+#df["discount"] = discount_rate_list
+df["shopname"] = shop_name
+df["kinstone"] = book_url_list
+df["image"] = img_link_list
+#df.to_sql(name='kingstone', con=con, if_exists='append', index=False)
+#print(df)
+df.to_csv('kinston.csv', sep=',',index=False,header=False)
